@@ -3,9 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Available Files</title>
 </head>
-<body>
-    hi, <a href="files/">https://nymii.dev/files/</a>
+    <body>
+    <main>
+        <h1>Available Files</h1>
+        <p id="status" role="status">Loading files...</p>
+        <ul id="file-list"></ul>
+    </main>
+    <script>
+        const status = document.querySelector("#status");
+        const fileList = document.querySelector("#file-list");
+        const apiUrl = "https://api.github.com/repos/NymiiTechTips/cdn/contents/files?ref=main";
+        const filesUrl = "https://nymii.dev/cdn/files/";
+
+        fetch(apiUrl, { headers: { Accept: "application/vnd.github+json" } })
+            .then((response) => {
+                if (!response.ok) throw new Error("Unable to fetch files.");
+                return response.json();
+            })
+            .then((entries) => {
+                const files = entries
+                    .filter((entry) => entry.type === "file")
+                    .sort((first, second) => first.name.localeCompare(second.name));
+
+                if (files.length === 0) {
+                    status.textContent = "No files yet.";
+                    return;
+                }
+
+                status.textContent = `${files.length} file${files.length > 1 ? "s" : ""}`;
+                for (const file of files) {
+                    const item = document.createElement("li");
+                    const link = document.createElement("a");
+                    link.href = filesUrl + encodeURIComponent(file.name);
+                    link.textContent = file.name;
+                    item.append(link);
+                    fileList.append(item);
+                }
+            })
+            .catch(() => {
+                status.textContent = "Error loading files.";
+            });
+    </script>
 </body>
 </html>
